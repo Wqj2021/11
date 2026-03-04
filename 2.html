@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的橙光小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", sans-serif;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-box {
+            width: 100%;
+            max-width: 700px;
+            background: #2d2d2d;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #f7d49d;
+        }
+
+        .story {
+            font-size: 18px;
+            line-height: 1.7;
+            min-height: 120px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #383838;
+            border-radius: 8px;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background: #d4af7a;
+            color: #222;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #e6c587;
+        }
+
+        .end {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        /* 新增：给重来按钮加一点样式区分 */
+        .restart-btn {
+            background: #7ad48a;
+        }
+        .restart-btn:hover {
+            background: #87e697;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-box">
+    <div class="title">古风小剧情 · 橙光风</div>
+    <div id="story" class="story">你穿越到古代，醒来在一间陌生的房间里。门外传来脚步声……</div>
+    <div class="choices">
+        <button class="btn" onclick="choose(1)">躲在床底</button>
+        <button class="btn" onclick="choose(2)">假装继续睡觉</button>
+    </div>
+</div>
+
+<script>
+    // 剧情数据
+    const plot = [
+        {
+            text: "你穿越到古代，醒来在一间陌生的房间里。门外传来脚步声……",
+            options: ["躲在床底", "假装继续睡觉"],
+            next: [1, 2]
+        },
+        {
+            text: "你躲进床底，来人进来四处看了看，没发现你，离开了。你暂时安全了。",
+            options: ["悄悄离开房间", "继续躲着观察"],
+            next: [3, 4]
+        },
+        {
+            text: "你闭眼装睡，来人轻轻摸了摸你的额头，轻声说：‘总算退烧了’。原来你是这家小姐。",
+            options: ["睁开眼问她是谁", "继续装睡"],
+            next: [5, 6]
+        },
+        {
+            text: "你成功逃出房间，但外面无人认识你，你流落街头。【结局：平凡流民】",
+            options: [],
+            end: true
+        },
+        {
+            text: "你等了很久，没人再来。但你也被困死在这里。【结局：困守原地】",
+            options: [],
+            end: true
+        },
+        {
+            text: "她告诉你，你是相府二小姐，昨日落水失忆。你的人生从此改写！【结局：相府千金】",
+            options: [],
+            end: true
+        },
+        {
+            text: "她以为你还没醒，转身离开。你失去了解真相的机会。【结局：迷雾一生】",
+            options: [],
+            end: true
+        }
+    ];
+
+    let current = 0;
+
+    // 初始化
+    showPlot(current);
+
+    function showPlot(index) {
+        const p = plot[index];
+        document.getElementById("story").innerText = p.text;
+
+        const choices = document.querySelector(".choices");
+        choices.innerHTML = "";
+
+        if (p.end) {
+            document.getElementById("story").innerText += "\n\n【游戏结束】";
+            // 核心修改：游戏结束时添加重来按钮
+            let restartBtn = document.createElement("button");
+            restartBtn.className = "btn restart-btn"; // 用自定义类区分样式
+            restartBtn.innerText = "重来一遍";
+            // 点击按钮重置current为0，重新展示初始剧情
+            restartBtn.onclick = () => {
+                current = 0;
+                showPlot(current);
+            };
+            choices.appendChild(restartBtn);
+            return;
+        }
+
+        for (let i = 0; i < p.options.length; i++) {
+            let btn = document.createElement("button");
+            btn.className = "btn";
+            btn.innerText = p.options[i];
+            let nextIndex = p.next[i];
+            btn.onclick = () => {
+                current = nextIndex;
+                showPlot(current);
+            };
+            choices.appendChild(btn);
+        }
+    }
+
+    // 移除原有的choose函数（原代码中未实际使用，避免冗余）
+</script>
+
+</body>
+</html>
