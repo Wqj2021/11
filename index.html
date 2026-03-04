@@ -23,7 +23,7 @@
 
         .game-box {
             width: 100%;
-            max-width: 700px;
+            max-width: 800px; /* 加宽适配图片 */
             background: #2d2d2d;
             border-radius: 10px;
             padding: 30px;
@@ -35,6 +35,24 @@
             font-size: 24px;
             margin-bottom: 20px;
             color: #f7d49d;
+        }
+
+        /* 新增：图片容器样式 */
+        .scene-img {
+            width: 100%;
+            height: 300px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #333;
+        }
+        .scene-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 保持图片比例 */
         }
 
         .story {
@@ -72,85 +90,143 @@
             color: #ff6b6b;
             font-weight: bold;
         }
-        /* 新增：给重来按钮加一点样式区分 */
+
         .restart-btn {
             background: #7ad48a;
         }
         .restart-btn:hover {
             background: #87e697;
         }
+
+        /* 新增：音乐开关按钮样式 */
+        .music-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #d4af7a;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            z-index: 999;
+        }
     </style>
 </head>
 <body>
+    <!-- 新增：背景音乐元素（默认隐藏） -->
+    <audio id="bgm" loop>
+        <!-- 替换成你的背景音乐链接（支持mp3格式） -->
+        <source src="./web/音阙诗听 - 红昭愿.mp3" type="audio/mpeg">
+        你的浏览器不支持音频播放
+    </audio>
 
-<div class="game-box">
-    <div class="title">古风小剧情 · 橙光风</div>
-    <div id="story" class="story">你穿越到古代，醒来在一间陌生的房间里。门外传来脚步声……</div>
-    <div class="choices">
-        <button class="btn" onclick="choose(1)">躲在床底</button>
-        <button class="btn" onclick="choose(2)">假装继续睡觉</button>
+    <!-- 新增：音乐开关按钮 -->
+    <button class="music-control" id="musicBtn" onclick="toggleMusic()">🔊</button>
+
+    <div class="game-box">
+        <div class="title">古风小剧情 · 橙光风</div>
+        
+        <!-- 新增：场景图片容器 -->
+        <div class="scene-img" id="sceneImg">
+            <img src="https://picsum.photos/id/1036/800/450" alt="初始场景">
+        </div>
+
+        <div id="story" class="story">你穿越到古代，醒来在一间陌生的房间里。门外传来脚步声……</div>
+        <div class="choices">
+            <button class="btn" onclick="choose(1)">躲在床底</button>
+            <button class="btn" onclick="choose(2)">假装继续睡觉</button>
+        </div>
     </div>
-</div>
 
 <script>
-    // 剧情数据
+    // 剧情数据（新增：每个剧情对应图片链接）
     const plot = [
         {
             text: "你穿越到古代，醒来在一间陌生的房间里。门外传来脚步声……",
             options: ["躲在床底", "假装继续睡觉"],
-            next: [1, 2]
+            next: [1, 2],
+            img: "https://picsum.photos/id/1036/800/450" // 初始房间图
         },
         {
             text: "你躲进床底，来人进来四处看了看，没发现你，离开了。你暂时安全了。",
             options: ["悄悄离开房间", "继续躲着观察"],
-            next: [3, 4]
+            next: [3, 4],
+            img: "https://picsum.photos/id/1040/800/450" // 躲床底场景图
         },
         {
             text: "你闭眼装睡，来人轻轻摸了摸你的额头，轻声说：‘总算退烧了’。原来你是这家小姐。",
             options: ["睁开眼问她是谁", "继续装睡"],
-            next: [5, 6]
+            next: [5, 6],
+            img: "https://picsum.photos/id/1035/800/450" // 小姐房间场景图
         },
         {
             text: "你成功逃出房间，但外面无人认识你，你流落街头。【结局：平凡流民】",
             options: [],
-            end: true
+            end: true,
+            img: "https://picsum.photos/id/1037/800/450" // 流民结局图
         },
         {
             text: "你等了很久，没人再来。但你也被困死在这里。【结局：困守原地】",
             options: [],
-            end: true
+            end: true,
+            img: "https://picsum.photos/id/1042/800/450" // 困守结局图
         },
         {
             text: "她告诉你，你是相府二小姐，昨日落水失忆。你的人生从此改写！【结局：相府千金】",
             options: [],
-            end: true
+            end: true,
+            img: "https://picsum.photos/id/1038/800/450" // 千金结局图
         },
         {
             text: "她以为你还没醒，转身离开。你失去了解真相的机会。【结局：迷雾一生】",
             options: [],
-            end: true
+            end: true,
+            img: "https://picsum.photos/id/1041/800/450" // 迷雾结局图
         }
     ];
 
     let current = 0;
+    let isMusicPlaying = false; // 音乐播放状态
+    const bgm = document.getElementById("bgm");
 
     // 初始化
     showPlot(current);
 
+    // 新增：切换背景音乐播放/暂停
+    function toggleMusic() {
+        const musicBtn = document.getElementById("musicBtn");
+        if (isMusicPlaying) {
+            bgm.pause();
+            musicBtn.innerHTML = "🔇";
+        } else {
+            bgm.play();
+            musicBtn.innerHTML = "🔊";
+        }
+        isMusicPlaying = !isMusicPlaying;
+    }
+
     function showPlot(index) {
         const p = plot[index];
         document.getElementById("story").innerText = p.text;
+
+        // 新增：更新场景图片
+        const imgContainer = document.getElementById("sceneImg");
+        imgContainer.innerHTML = `<img src="${p.img}" alt="场景图">`;
 
         const choices = document.querySelector(".choices");
         choices.innerHTML = "";
 
         if (p.end) {
             document.getElementById("story").innerText += "\n\n【游戏结束】";
-            // 核心修改：游戏结束时添加重来按钮
+            // 重来按钮
             let restartBtn = document.createElement("button");
-            restartBtn.className = "btn restart-btn"; // 用自定义类区分样式
+            restartBtn.className = "btn restart-btn";
             restartBtn.innerText = "重来一遍";
-            // 点击按钮重置current为0，重新展示初始剧情
             restartBtn.onclick = () => {
                 current = 0;
                 showPlot(current);
@@ -171,10 +247,7 @@
             choices.appendChild(btn);
         }
     }
-
-    // 移除原有的choose函数（原代码中未实际使用，避免冗余）
 </script>
 
 </body>
-
 </html>
